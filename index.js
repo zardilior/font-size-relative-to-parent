@@ -1,11 +1,9 @@
-const attribute = "data-font-size-rel-to-parent";
 document.addEventListener("DOMContentLoaded", function(event) {
-
+  const attribute = "data-font-size-rel-to-parent";
+  // TBD: add mutation observer for new insertions that have the attribute in order to calculate 
   calculateFontSizes();
   setListeners();
-  window.addEventListener('resize',adjustFontSizes);
 
-  //setInterval(adjustFontSizes,1)
   function adjustFontSizes() {
     const elementList = document.querySelectorAll(`[${attribute}]`)
     elementList.forEach(el=>{
@@ -13,22 +11,25 @@ document.addEventListener("DOMContentLoaded", function(event) {
     })  
   }
 
-  // get all elements
   function calculateFontSizes() {
     const elementList = document.querySelectorAll(`[${attribute}]`)
     elementList.forEach(el=>{
-      const wrapper = document.createElement("DIV");
-      wrapper.style.fontSize = "1000px";
-      const clone = el.cloneNode();
-      wrapper.appendChild(clone);
-      document.body.appendChild(wrapper)
-      const originalFontSize = window.getComputedStyle(clone).getPropertyValue('font-size');
-      clone.style.fontSize = "100%";
-      const newFontSize = window.getComputedStyle(clone).getPropertyValue('font-size');
-      el.dataset.magicFontSize = parseFloat(originalFontSize) / parseFloat(newFontSize) *100;
-      document.body.removeChild(wrapper)
+      calculateSingleFontSize(el);
     })  
     adjustFontSizes();
+  }
+
+  function calculateSingleFontSize(el) {
+    const wrapper = document.createElement("DIV");
+    wrapper.style.fontSize = "1000px";
+    const clone = el.cloneNode();
+    wrapper.appendChild(clone);
+    document.body.appendChild(wrapper)
+    const originalFontSize = window.getComputedStyle(clone).getPropertyValue('font-size');
+    clone.style.fontSize = "100%";
+    const newFontSize = window.getComputedStyle(clone).getPropertyValue('font-size');
+    el.dataset.magicFontSize = parseFloat(originalFontSize) / parseFloat(newFontSize) *100;
+    document.body.removeChild(wrapper)
   }
 
   function adjustSingleNodeFontSize(el) {
@@ -36,15 +37,24 @@ document.addEventListener("DOMContentLoaded", function(event) {
   }
 
   function setListeners() {
+    window.addEventListener('resize',adjustFontSizes);
     const elementList = document.querySelectorAll(`[${attribute}]`)
     elementList.forEach(el=>{
-      const mutationObserver = new MutationObserver(function() {
-        console.log("mutation observer launched");
+      // observe parent for style and class changes catch width change 
+      const mutationParentObserver = new MutationObserver(function() {
         adjustSingleNodeFontSize(el);
       });
-      mutationObserver.observe(el.parentNode, {
+      mutationParentObserver.observe(el.parentNode, {
         attributes: true,
         attributeFilter:['style','class']
+      });
+      // observe itself for style and class changes catch font size change
+      const mutationObserver = new MutationObserver(function() {
+        calculateSingleFontSize(el)
+      });
+      mutationObserver.observe(el, {
+        attributes: true,
+        attributeFilter:['class']
       });
     });
   }
