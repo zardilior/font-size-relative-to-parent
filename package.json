@@ -1,0 +1,11 @@
+{
+  "name": "font-size-relative-to-parent",
+  "version": "1.0.0",
+  "description": "A small library to allow font-size percentages to be the relative width from the parent for true responsiveness",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
